@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  spark:
+    container_name: spark-streaming
+    image: apache/spark-py:v3.4.0
+    volumes:
+      - .:/usr/src/app
+    network_mode: "host"
+    hostname: localhost
+    command: > 
+      /opt/spark/bin/spark-submit --packages io.delta:delta-core_2.12:2.4.0 
+      --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" 
+      --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" 
+      --conf "spark.driver.extraJavaOptions=-Divy.cache.dir=/tmp -Divy.home=/tmp" 
+      --conf "spark.driver.port=4041" 
+      --conf "spark.scheduler.mode=FAIR" 
+      --conf "spark.databricks.delta.schema.autoMerge.enabled=true"
+      /usr/src/app/test.py
+
