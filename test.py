@@ -10,6 +10,7 @@ enriched_content_table_path = '/tmp/delta-content-enriched'
 delta_gold_table_path = '/tmp/delta-gold'
 
 
+
 def raw_data_job():
     """
     simulate a flow of data where processing raw is an expensive operation.
@@ -68,7 +69,7 @@ def enrich_content_job():
 
     results are merged into the `delta-content-enriched` table
     """
-    
+
     (DeltaTable.createIfNotExists(spark)
         .addColumn('value', 'LONG')
         .addColumn('value_enriched', 'LONG')
@@ -156,13 +157,13 @@ def update_gold_with_enrichment_job():
     df = (spark.readStream
         .format("delta")
         .load(enriched_content_table_path)
-        # force single partition to maybe avoid write conflicts with itself?  
+        # force single partition to maybe avoid write conflicts with itself?
         # update: this didnt work :(
         .repartition(1)
         .writeStream
         .option("mergeSchema", "true")
         .format("delta")
-        # set trigger time to be slightly offset from the delta-gold job 
+        # set trigger time to be slightly offset from the delta-gold job
         # so they dont concurrently write to the unpartitioned table
         # update: this worked but feels not great
         .trigger(processingTime='15 seconds')
